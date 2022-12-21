@@ -1,6 +1,6 @@
 import json
 from flask import Flask, request, jsonify
-from flask_jwt_extended import create_access_token, get_jwt, get_jwt_identity, unset_access_cookies, jwt_required, JWTManager
+from flask_jwt_extended import create_access_token, unset_jwt_cookies, get_jwt, get_jwt_identity, unset_access_cookies, jwt_required, JWTManager
 
 
 api = Flask(__name__)
@@ -16,9 +16,30 @@ def test_api():
 
 @api.route("/token", methods=["POST"])
 def create_token():
-    return {"msg": "hello"}
+    email = request.json.get("email", None)
+    password = request.json.get("password", None)
+
+    # change with data from db
+    if email != "test" or password != "test":
+        return {"msg": "Wrong email or password"}, 401
+
+    access_token = create_access_token(identity=email)
+    return {"access_token": access_token}
+
+
+@api.route("/profile")
+def my_profile():
+    return {
+        "name": "test",
+        "about": "test about"
+    }
 
 
 
+@api.route("/logout", methods=["POST"])
+def logout():
+    response = jsonify({"msg": "logout successfull"})
+    unset_jwt_cookies(response)
+    return response
 
-api.run()
+api.run(debug=True)
