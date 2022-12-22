@@ -2,13 +2,15 @@ import json
 from flask import Flask, request, jsonify
 from flask_jwt_extended import create_access_token, unset_jwt_cookies, get_jwt, get_jwt_identity, unset_access_cookies, jwt_required, JWTManager
 from datetime import datetime, timedelta, timezone
+from flask_cors import CORS
+
 
 api = Flask(__name__)
-
+CORS(api)
 api.config["JWT_SECRET_KEY"] = "change_me"
 
 jwt = JWTManager(api)
-api.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1) 
+api.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 
 
 @api.after_request
@@ -21,7 +23,7 @@ def refresh_expiring_jwts(response):
             access_token = create_access_token(identity=get_jwt_identity())
             data = response.get_json()
             if type(data) is dict:
-                data["access_token"] = access_token 
+                data["access_token"] = access_token
                 response.data = json.dumps(data)
         return response
     except (RuntimeError, KeyError):
@@ -56,11 +58,11 @@ def my_profile():
     }
 
 
-
 @api.route("/logout", methods=["POST"])
 def logout():
     response = jsonify({"msg": "logout successfull"})
     unset_jwt_cookies(response)
     return response
+
 
 api.run(debug=True)
